@@ -57,3 +57,6 @@ class Converter():
 
     def take(self, n):
         return self.df.take(n)
+
+    def write(self, output, out_format="parquet"):
+        self.df.write.format(out_format).save(output)
