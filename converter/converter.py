@@ -23,10 +23,12 @@ import os
 
 class Converter():
 
-    def __init__(self, input, output):
+    def __init__(self, input, output, out_format, mode):
         self.setUp()
         self.df = self.sqlCtx.read.csv(input,header=True)
         self.output = output
+        self.out_format = out_format
+        self.mode = mode
 
     def getMaster(self):
         return os.getenv('SPARK_MASTER')
@@ -58,5 +60,11 @@ class Converter():
     def take(self, n):
         return self.df.take(n)
 
-    def write(self, output, out_format="parquet"):
-        self.df.write.format(out_format).save(output)
+    def write(self):
+        self.df.write.format(self.out_format).save(self.output, mode = self.mode)
+
+    def validate(self):
+        df_out = self.df = self.sqlCtx.read.format(self.out_format).load(self.output)
+        df_out_cnt = df_out.count()
+        df_cnt = self.df.count()
+        return df_cnt == df_out_cnt
