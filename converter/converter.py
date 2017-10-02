@@ -22,20 +22,27 @@ from pyspark.context import SparkContext, SparkConf
 import os
 
 class Converter():
-
-    def __init__(self, input, output, out_format, mode):
+    def __init__(self, **kwargs):
+        print(kwargs)
         self.setUp()
-        self.df = self.sqlCtx.read.csv(input,header=True)
-        self.output = output
-        self.out_format = out_format
-        self.mode = mode
+        self.input = kwargs.get('input')
+        self.output = kwargs.get('output')
+        self.in_format = self.input.split('.')[-1]
+        self.out_format = self.output.split('.')[-1]
+        self.mode = kwargs.get('mode', 'overwrite')
+        self.compression = kwargs.get('compression', None)
+        self.partitionBy = kwargs.get('partitionBy', None)
+        if self.in_format == 'csv':
+            self.df = self.sqlCtx.read.csv(self.input, header=True)
+        elif 'parquet':
+            self.df = self.sqlCtx.read.parquet(self.input)
+        else:
+            raise ValueError('Not support this format of source')
 
     def getMaster(self):
         return os.getenv('SPARK_MASTER')
 
     def setUp(self):
-        """Setup a basic Spark context for testing"""
-        #conf = SparkConf().setMaster(self.getMaster())
         self.sc = SparkContext(self.getMaster())
         quiet_py4j()
         try:
@@ -45,10 +52,6 @@ class Converter():
             self.sqlCtx = SQLContext(self.sc)
 
     def tearDown(self):
-        """
-        Tear down the basic panda spark test case. This stops the running
-        context and does a hack to prevent Akka rebinding on the same port.
-        """
         self.sc.stop()
         # To avoid Akka rebinding to the same port, since it doesn't unbind
         # immediately on shutdown
@@ -61,7 +64,10 @@ class Converter():
         return self.df.take(n)
 
     def write(self):
-        self.df.write.format(self.out_format).save(self.output, mode = self.mode)
+        if self.out_format == 'csv':
+            self.df.write.csv(self.output, mode=self.mode, compression=self.compression, header=True)
+        elif self.out_format == 'parquet':
+            self.df.write.parquet(self.output, mode=self.mode, compression=self.compression)
 
     def validate(self):
         df_out = self.df = self.sqlCtx.read.format(self.out_format).load(self.output)
