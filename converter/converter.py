@@ -1,23 +1,3 @@
-#
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
-"""Provides a common test case base for Python Spark tests"""
-
-from .utils import add_pyspark_path, quiet_py4j
 from pyspark.context import SparkContext, SparkConf
 import os
 
@@ -40,11 +20,11 @@ class Converter():
             raise ValueError('Not support this format of source')
 
     def getMaster(self):
-        return os.getenv('SPARK_MASTER')
+        return os.getenv('SPARK_MASTER', 'local[2]')
 
     def setUp(self):
         self.sc = SparkContext(self.getMaster())
-        quiet_py4j()
+        #quiet_py4j()
         try:
             from pyspark.sql import SparkSession
             self.sqlCtx = SparkSession.builder.getOrCreate()
