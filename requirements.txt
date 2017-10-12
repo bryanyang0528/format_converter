@@ -1,0 +1,7 @@
+findspark==1.1.0
+linecache2==1.0.0
+py==1.4.34
+py4j==0.10.4
+pyspark==2.2.0
+six==1.11.0
+traceback2==1.4.0
