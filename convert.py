@@ -1,6 +1,5 @@
 import argparse
-from converter import Converter
-
+from converter.converter import Converter
 
 def main(*args, **kwargs):
     ct = Converter(**kwargs)
